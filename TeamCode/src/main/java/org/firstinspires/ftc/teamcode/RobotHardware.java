@@ -1,13 +1,8 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.arcrobotics.ftclib.controller.PIDController;
-import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
-import com.qualcomm.robotcore.hardware.AnalogInput;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -15,58 +10,30 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
-import java.lang.Math;
-
-import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-
-import java.util.Collections;
-import java.util.List;
-
 @Config
 public class RobotHardware {
     public DcMotorEx
             leftFront, leftRear,
             rightRear, rightFront,
-            Brat, MotorTest;
+            Brat, MotorLiftStanga , MotorLiftDreapta , MotorTest;
 
     public Servo
-            Gheara , ClawRotate , ClawY;
+            Gheara , ClawRotate , clawY;
 
     public Servo BratServoLeft , BratServoRight;
 
-    public AnalogInput BratAnalogLeft , BratAnalogRight;
-    public static double BratDownPos = 0.46 , BratUpPose = 0.20;
-    public static double analogPosLeft , analogPosRight;
     GlobalUse global = new GlobalUse();
+    ClawY ClawY = new ClawY();
+    ClawX clawX = new ClawX();
+    Claw claw = new Claw();
+    BratServo bratServo = new BratServo();
+    Linkage linkage = new Linkage();
+
+    DriveTrain driveTrain = new DriveTrain();
 
     public Limelight3A limeLight;
-    public static double openPos = 0.9;
-    public static double closePos = 0.1;
 
-    public double SampleAngle;
-    public String SampleDirection;
-
-    ///Lift PID
-    public static int LiftTarget;
-
-    ///Claw
-    boolean ghearaOpen = true;
-    boolean buttonIsPressed = false, toggleClaw = false;
-
-    ///Brat
-    boolean buttonIsPressedBrat = false , toogleBrat=false;
-
-
-    boolean manualControlBrat = false;
-    public double pid;
     public IMU imu;
-    PIDController pidController = new PIDController(0, 0, 0);
-
-    public static double kpBrat = 0.0035, kiBrat = 0, kdBrat = 0, ffBrat = 0.01;
-
-    public static int BratTarget = 0;
-
     public RobotHardware(HardwareMap hardwareMap) {
 
         leftFront = hardwareMap.get(DcMotorEx.class, "LeftFront");
@@ -89,9 +56,20 @@ public class RobotHardware {
         Gheara = hardwareMap.get(Servo.class, "Gheara");
         ClawRotate = hardwareMap.get(Servo.class , "GhearaRotatie");
 
-        ClawY = hardwareMap.get(Servo.class, "GhearaY");
+        clawY = hardwareMap.get(Servo.class, "GhearaY");
 
+        ///Lift
+        MotorLiftDreapta = hardwareMap.get(DcMotorEx.class, "LiftDreapta");
+        MotorLiftDreapta.setDirection(DcMotorEx.Direction.FORWARD);
+        MotorLiftDreapta.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        MotorLiftDreapta.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
+        MotorLiftStanga = hardwareMap.get(DcMotorEx.class, "LiftStanga");
+        MotorLiftStanga.setDirection(DcMotorEx.Direction.REVERSE);
+        MotorLiftStanga.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        MotorLiftStanga.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        MotorLiftStanga.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        MotorLiftStanga.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         ///Brat
         Brat = hardwareMap.get(DcMotorEx.class, "Brat");
@@ -111,15 +89,10 @@ public class RobotHardware {
         MotorTest.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         MotorTest.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-
         ///BratServo
         BratServoLeft = hardwareMap.get(Servo.class , "BratServoLeft");
         BratServoRight = hardwareMap.get(Servo.class , "BratServoRight");
-       // BratServoLeft.setDirection(DcMotorSimple.Direction.FORWARD);
-       // BratServoRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        BratAnalogLeft = hardwareMap.get(AnalogInput.class , "BratAnalogInputLeft");
-        BratAnalogRight = hardwareMap.get(AnalogInput.class , "BratAnalogInputRight");
 
         imu = hardwareMap.get(IMU.class, "imu");
         // Adjust the orientation parameters to match your robot
@@ -131,196 +104,48 @@ public class RobotHardware {
 
 
 
-    public void DriveMovement(Gamepad gamepad) {
-//        double y = -gamepad.left_stick_y; // Remember, Y stick value is reversed
-//        double x = gamepad.left_stick_x;
-//        double rx = gamepad.right_stick_x;
-//
-//        if (!gamepad.left_bumper) {
-//            x /= 2;
-//            y /= 2;
-//        }
-//        if (!gamepad.right_bumper) {
-//            rx /= 2;
-//        }
-//
-//        if (gamepad.options) {
-//            imu.resetYaw();
-//        }
-//
-//        double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
-//
-//        double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
-//        double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
-//
-//        double frontLeftPower = (rotY + rotX + rx);
-//        double backLeftPower = (rotY - rotX + rx);
-//        double frontRightPower = (rotY - rotX - rx);
-//        double backRightPower = (rotY + rotX - rx);
-//
-//        leftFront.setPower(frontLeftPower);
-//        leftRear.setPower(backLeftPower);
-//        rightFront.setPower(frontRightPower);
-//        rightRear.setPower(backRightPower);
-
-        double y = -gamepad.left_stick_y; // Remember, Y stick is reversed!
-        double x = gamepad.left_stick_x;
-        double rx = gamepad.right_stick_x;
-
-        if (!gamepad.left_bumper) {
-            x /= 2;
-            y /= 2;
-        }
-        if (!gamepad.right_bumper) {
-            rx /= 2;
-        }
-
-        leftFront.setPower(y + x + rx);
-        leftRear.setPower(y - x + rx);
-        rightFront.setPower(y - x - rx);
-        rightRear.setPower(y + x - rx);
-    }
-
-    public double ReturnAnalogBratLeft()
+    public void LiftControl(Gamepad gamepad)
     {
-        return analogPosLeft;
+        global.LiftControl(gamepad , MotorLiftStanga , MotorLiftDreapta , ReturnLinkageStatus());
     }
-    public double ReturnAnalogBratRight()
+    public void DriveMovement(Gamepad gamepad)
     {
-        return analogPosRight;
+        driveTrain.DriveMovement(gamepad , leftFront , leftRear , rightFront , rightRear);
     }
-    public void BratPID(Gamepad gamepad) {
-        pidController.setPID(kpBrat, kiBrat, kdBrat);
-        int BratPos = Brat.getCurrentPosition();
-        double pid = pidController.calculate(BratPos, BratTarget);
-        double pidPowerBRAT = pid + ffBrat;
-        Brat.setPower(pidPowerBRAT);
-
-    }
-
-    public int ReturnPosBrat() {
-        return BratTarget;
-    }
-
-    public void setBratTarget(int a) {
-        BratTarget = a;
-    }
-
-    public void ubratTarget(Gamepad gamepad)
+    public void LinkagePID(Gamepad gamepad)
     {
-        if(gamepad.dpad_up && gamepad.left_bumper)
-        {
-            setBratTarget(global.linkageUpPose);
-            global.ChangeLinkageStatus(false);
-        }
-        if (gamepad.dpad_down && gamepad.left_bumper)
-        {
-            setBratTarget(global.linkageDownPos);
-            global.ChangeLinkageStatus(true);
-        }
-
+        linkage.LinkagePID(gamepad , Brat);
     }
 
-    boolean buttonY=false;
-    boolean BratOpen=false;
-    public void BratServo(Gamepad gamepad)
-    {
-//        analogPosLeft = BratAnalogLeft.getVoltage()/3.3*360;
-//        analogPosRight = BratAnalogRight.getVoltage()/3.3*360;
-//
-//        if(gamepad.x && gamepad.right_bumper)
+    public int ReturnLinkageTarget(){return linkage.ReturnLinkageTarget();}
+    public boolean ReturnLinkageStatus(){return linkage.ReturnLinkageStatus();}
+    public void BratServo(Gamepad gamepad) {bratServo.BratManager(gamepad , BratServoLeft , BratServoRight);}
+
+//    public void Limelight(Telemetry telemetry) {
+//        LLResult result = limeLight.getLatestResult();
+//        if (result.isValid())
 //        {
-//            servoPID.SetBratSvTarget(132);
-//            servoPID.PIDServo(BratServoLeft , BratAnalogLeft);
-//            servoPID.PIDServo(BratServoRight , BratAnalogRight);
-//        }
-//        else
-//            if(gamepad.b && gamepad.right_bumper)
+//            double[] outputs = result.getPythonOutput();
+//            if(outputs!=null && outputs.length>0)
 //            {
-//                servoPID.SetBratSvTarget(260);
-//                servoPID.PIDServo(BratServoLeft , BratAnalogLeft);
-//                servoPID.PIDServo(BratServoRight , BratAnalogRight);
+//                SampleAngle=outputs[1];
+//
 //            }
+//        }
+//
+//    }
 
-        if (gamepad.y && !buttonY) {
-            BratOpen = !BratOpen;
-            if (BratOpen) {
-                BratServoLeft.setPosition(BratDownPos);
-                BratServoRight.setPosition(BratUpPose);
-            } else {
-                BratServoLeft.setPosition(BratUpPose);
-                BratServoRight.setPosition(BratDownPos);
-            }
-            buttonY = true;
-        }
-        if (!gamepad.y) {
-            buttonY = false;
-        }
-    }
-
-    public void Limelight(Telemetry telemetry) {
-        LLResult result = limeLight.getLatestResult();
-        if (result.isValid())
-        {
-            double[] outputs = result.getPythonOutput();
-            if(outputs!=null && outputs.length>0)
-            {
-                SampleAngle=outputs[1];
-
-            }
-        }
-
-    }
-public void ClawManager(Gamepad gamepad) {
-    if (gamepad.a && !buttonIsPressed) {
-        ghearaOpen = !ghearaOpen;
-        if (ghearaOpen) {
-            Gheara.setPosition(openPos);
-        } else {
-            Gheara.setPosition(closePos);
-        }
-        buttonIsPressed = true;
-    }
-    if (!gamepad.a) {
-        buttonIsPressed = false;
-    }
+    public void ClawManager(Gamepad gamepad)
+{
+    claw.ClawManager(gamepad , Gheara);
 }
-
-    boolean open=false , button=false;
     public void ClawRotation(Gamepad gamepad)
     {
-        if (gamepad.b && !button && !gamepad.right_bumper) {
-            open = !open;
-            if (open) {
-                ClawRotate.setPosition(1);
-            } else {
-                ClawRotate.setPosition(0.5);
-            }
-            button = true;
-        }
-        if (!gamepad.b && !gamepad.right_bumper) {
-            button = false;
-        }
-
+        clawX.ClawXManager(gamepad , ClawRotate);
     }
-
-    boolean buttonX=false;
-    boolean ClawOpen=false;
-
     public void ClawYManager(Gamepad gamepad)
     {
-        if (gamepad.x && !buttonX && !gamepad.right_bumper) {
-        ClawOpen = !ClawOpen;
-        if (ClawOpen) {
-            ClawY.setPosition(1);
-        } else {
-            ClawY.setPosition(0);
-        }
-        buttonX = true;
-    }
-        if (!gamepad.x && !gamepad.right_bumper) {
-            buttonX = false;
-        }
+        ClawY.ClawYManager(gamepad , clawY);
     }
 }
 

@@ -30,12 +30,9 @@ public class TeleOP extends LinearOpMode {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         telemetry.setMsTransmissionInterval(11);
         RobotHardware robot = new RobotHardware(hardwareMap);
-        LinkagePID lift = new LinkagePID(hardwareMap);
-        LinkagePID2 lift2 = new LinkagePID2(hardwareMap);
         ServoPID servoPID = new ServoPID();
         GlobalUse global = new GlobalUse();
         global.SetLiftTarget(0);
-        robot.setBratTarget(0);
         runtime.reset();
         waitForStart();
         robot.limeLight.pipelineSwitch(0);
@@ -43,25 +40,17 @@ public class TeleOP extends LinearOpMode {
 
         while (opModeIsActive()) {
             robot.DriveMovement(gamepad1);
-            robot.BratPID(gamepad2);
-            robot.ubratTarget(gamepad2);
+            robot.LinkagePID(gamepad2);
             robot.ClawManager(gamepad2);
             robot.BratServo(gamepad2);
             robot.ClawRotation(gamepad2);
             robot.ClawYManager(gamepad2);
-            lift.LiftPIDControlStanga(gamepad2);
-            lift2.LiftControlRight(gamepad2);
-            //global.LiftManualControl(gamepad2 , lift.MotorLiftStanga , lift2.MotorLiftDreapta);
-           // robot.Limelight(telemetry);
-           // telemetry.addData("BratSvTarget" , servoPID.ReturnBratSvTarget());
-           // telemetry.addData("BratServoLeftPos" , robot.ReturnAnalogBratLeft()); ///132-pickUp 260-basket
-           // telemetry.addData("BratServoRightPos" , robot.ReturnAnalogBratRight());
-            telemetry.addData("Arm Target", robot.ReturnPosBrat());
-            telemetry.addData("Arm Pos", robot.Brat.getCurrentPosition());
-            telemetry.addData("Lift Target" , lift.ReturnLiftTarget());
-            telemetry.addData("Lift Left Pos" , lift.MotorLiftStanga.getCurrentPosition());
-            telemetry.addData("Lift Right Pos" , lift2.MotorLiftDreapta.getCurrentPosition());
-            telemetry.addData("Linkage Status" , global.ReturnLinkageStatus());
+            robot.LiftControl(gamepad2);
+            telemetry.addData("Linkage Target", robot.ReturnLinkageTarget());
+            telemetry.addData("Linkage Pos", robot.Brat.getCurrentPosition());
+            telemetry.addData("Lift Target" , global.ReturnLiftTarget());
+            telemetry.addData("Lift Pos" , robot.MotorLiftStanga.getCurrentPosition());
+            telemetry.addData("Linkage Status" , robot.ReturnLinkageStatus());
             telemetry.addData("Runtime Seconds - ", runtime.seconds());
             telemetry.update();
 

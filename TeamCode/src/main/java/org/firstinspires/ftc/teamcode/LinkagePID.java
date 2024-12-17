@@ -36,7 +36,7 @@ public class LinkagePID {
 
     public void LiftPIDControlStanga(Gamepad gamepad)
     {
-        global.LiftControl(gamepad , MotorLiftStanga , pidController);
+       // global.LiftControl(gamepad , MotorLiftStanga , pidController);
     }
 
 
