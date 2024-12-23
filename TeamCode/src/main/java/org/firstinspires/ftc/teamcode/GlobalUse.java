@@ -13,67 +13,76 @@ public class GlobalUse {
 
     ///Lift
     public static int LiftTarget;
-    public static int LiftPickupMax = 3000;
-    public static int LiftMaxTarget=7250 , LiftMinTarget=200;
+    public static int LiftPickupMax = 2300;
+    public static int LiftMaxTarget=4150 , LiftMinTarget=200;
     public static int LiftMultiplier=42;
+    public static double kpLift = 0.003, kiLift = 0, kdLift = 0, ffLift = 0.001;
 
+    public static boolean isMoving=false;
 
-
+    public boolean IsMoving(){return isMoving;}
     public int ReturnLiftTarget(){return LiftTarget;}
+
     public void SetLiftTarget(int target)
     {
         LiftTarget = target;
     }
 
-
-    public void LiftControl(Gamepad gamepad , DcMotorEx MotorLiftStanga , DcMotorEx MotorLiftDrapta , boolean linkageStatus)
+    public int ReturnLiftPickUpMax(){return LiftPickupMax;}
+    public void LiftControl(Gamepad gamepad , DcMotorEx Lift ,DcMotorEx LiftDreapta, PIDController pid , boolean linkageStatus)
     {
         if(linkageStatus)
         {
-                LiftPickupControl(gamepad , MotorLiftStanga , MotorLiftDrapta);
+            LiftManualControl(gamepad , Lift,LiftDreapta , pid);
         }
         else
-            LiftDropControl(gamepad , MotorLiftStanga , MotorLiftDrapta);
+            LiftPIDControl(gamepad , Lift,LiftDreapta , pid);
     }
 
-    public void LiftDropControl(Gamepad gamepad , DcMotor MotorLiftStanga , DcMotorEx MotorLiftDreapta)
+    public void LiftPIDControl(Gamepad gamepad , DcMotor Lift , DcMotorEx LiftDrepata, PIDController liftPID)
     {
         if(LiftTarget<=LiftMaxTarget)
-            if (gamepad.left_trigger > 0.1 && gamepad.right_trigger<0.1)
+            if (gamepad.left_trigger>0.1){
                 LiftTarget+=(int)(gamepad.left_trigger*LiftMultiplier);
-        if(LiftTarget>=200)
-            if(gamepad.right_trigger > 0.1 && gamepad.left_trigger<0.1)
-                LiftTarget-=(int)(gamepad.right_trigger*LiftMultiplier);
-        MotorLiftStanga.setTargetPosition(LiftTarget);
-        if(MotorLiftStanga.getTargetPosition()!=LiftTarget)
-        {
-            MotorLiftStanga.setPower(0.5);
-            MotorLiftDreapta.setPower(0.5);
-        }
-        else
-        {
-            MotorLiftStanga.setPower(0);
-            MotorLiftDreapta.setPower(0);
-        }
-    }
-    public void LiftPickupControl(Gamepad gamepad , DcMotorEx MotorLiftStanga , DcMotorEx MotorLiftDreapta)
-    {
-        if(gamepad.left_trigger>0.1)
-            LiftTarget = LiftPickupMax;
-        if(gamepad.right_trigger>0.1)
-            LiftTarget = LiftMinTarget;
+                isMoving=true;
+            }
 
-        MotorLiftStanga.setTargetPosition(LiftTarget);
-        if(MotorLiftStanga.getTargetPosition()!=LiftTarget)
-        {
-            MotorLiftStanga.setPower(0.5);
-            MotorLiftDreapta.setPower(0.5);
+        if(LiftTarget>=LiftMinTarget)
+            if(gamepad.right_trigger > 0.1){
+                LiftTarget-=(int)(gamepad.right_trigger*LiftMultiplier);
+                isMoving=true;
+            }
+        if(LiftTarget>LiftMaxTarget)
+            LiftTarget=LiftMaxTarget;
+        if(LiftTarget<LiftMinTarget)
+            LiftTarget=LiftMinTarget;
+        if(Lift.getCurrentPosition()==LiftTarget)
+            isMoving=false;
+        liftPID.setPID(kpLift , kiLift , kdLift);
+        int armPos = Lift.getCurrentPosition();
+        double pid = liftPID.calculate(armPos , LiftTarget);
+        Lift.setPower(pid+ffLift);
+        LiftDrepata.setPower(pid+ffLift);
+    }
+    public void LiftManualControl(Gamepad gamepad , DcMotorEx Lift , DcMotorEx LiftDreapta,PIDController liftPID)
+    {
+        if(gamepad.left_trigger>0.1){
+            LiftTarget = LiftPickupMax;
+            isMoving=true;
         }
-        else
-        {
-            MotorLiftStanga.setPower(0);
-            MotorLiftDreapta.setPower(0);
+
+        if(gamepad.right_trigger>0.1){
+            LiftTarget = LiftMinTarget;
+            isMoving=true;
         }
+
+        if(Lift.getCurrentPosition()==LiftTarget)
+            isMoving=false;
+        liftPID.setPID(kpLift , kiLift , kdLift);
+        int armPos = Lift.getCurrentPosition();
+        double pid = liftPID.calculate(armPos , LiftTarget);
+        Lift.setPower(pid);
+        LiftDreapta.setPower(pid);
     }
 
 }

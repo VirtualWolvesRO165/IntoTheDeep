@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import android.graphics.Bitmap;
+import android.os.SystemClock;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
@@ -30,9 +31,11 @@ public class TeleOP extends LinearOpMode {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         telemetry.setMsTransmissionInterval(11);
         RobotHardware robot = new RobotHardware(hardwareMap);
-        ServoPID servoPID = new ServoPID();
         GlobalUse global = new GlobalUse();
         global.SetLiftTarget(0);
+        robot.SetLinkageTarget(0);
+        robot.SetLinkageStatus();
+        robot.Init();
         runtime.reset();
         waitForStart();
         robot.limeLight.pipelineSwitch(0);

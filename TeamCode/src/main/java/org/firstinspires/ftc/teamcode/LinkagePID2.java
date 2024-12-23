@@ -11,10 +11,10 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 @Config
-    public class LinkagePID2 {
+public class LinkagePID2 {
 
-        GlobalUse global =  new GlobalUse();
-        boolean manualControl = false;
+    GlobalUse global =  new GlobalUse();
+    boolean manualControl = false;
     PIDController pidController = new PIDController(0, 0, 0);
 
     public DcMotorEx
@@ -36,7 +36,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
     public void LiftControlRight(Gamepad gamepad)
     {
-      //  global.LiftControl(gamepad , MotorLiftDreapta , pidController);
+        //  global.LiftControl(gamepad , MotorLiftDreapta , pidController);
     }
 
 //    public void LinkageControlDreapta(Gamepad gamepad) {

@@ -5,36 +5,29 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 public class Claw {
 
-    boolean button=false , open=false;
+    boolean button=false;
+    public static boolean clawState=false;
+    ///false=closed true=opened
+    public static double openPos=1 , closePos=0;
 
-    public int ClawYState=1;
+    public double ReturnOpenPos(){return openPos;}
+    public double ReturnClosePos(){return closePos;}
+
+    public void SetClawState(boolean state)
+    {
+        clawState = state;
+    }
+    public boolean ReturnClawState(){return clawState;}
     public void ClawManager(Gamepad gamepad , Servo Claw)
     {
-        if (gamepad.a && !button) {
-            open = !open;
-            if (open) {
-                setServoPos(Claw , 1);
-            } else {
-                setServoPos(Claw , 0);
-            }
-            button = true;
-        }
-        if (!gamepad.a) {
-            button = false;
-        }
+        ClawState(Claw);
     }
-
-    public void setServoPos(Servo servo , double pos)
+    public void ClawState(Servo Claw)
     {
-        servo.setPosition(pos);
-        ChangeClawState();
-    }
-
-    public void ChangeClawState()
-    {
-        if(ClawYState==0)
-            ClawYState=1;
+        if(clawState)
+            Claw.setPosition(openPos);
         else
-            ClawYState=0;
+            Claw.setPosition(closePos);
     }
+
 }

@@ -6,17 +6,19 @@ import com.qualcomm.robotcore.hardware.Servo;
 public class ClawX {
 
     boolean open=false , button = false;
+    public static double vertical=0 , horizontal=1;
 
-    public int ClawYState=1;
+    public double ReturnVerticalPos(){return vertical;}
+    public double ReturnHorizontalPos(){return horizontal;}
 
     public void ClawXManager(Gamepad gamepad , Servo ClawX)
     {
         if (gamepad.b && !button && !gamepad.right_bumper) {
             open = !open;
             if (open) {
-                ClawX.setPosition(1);
+                ClawX.setPosition(vertical);
             } else {
-                ClawX.setPosition(0.5);
+                ClawX.setPosition(horizontal);
             }
             button = true;
         }
@@ -28,14 +30,13 @@ public class ClawX {
     public void setServoPos(Servo servo , double pos)
     {
         servo.setPosition(pos);
-        ChangeClawState();
     }
 
-    public void ChangeClawState()
+    public void ChangeClawState(Servo ClawX)
     {
-        if(ClawYState==0)
-            ClawYState=1;
+        if(ClawX.getPosition()==horizontal)
+            ClawX.setPosition(vertical);
         else
-            ClawYState=0;
+            ClawX.setPosition(horizontal);
     }
 }

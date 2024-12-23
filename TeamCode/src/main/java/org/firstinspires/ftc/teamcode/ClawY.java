@@ -6,22 +6,24 @@ import com.qualcomm.robotcore.hardware.Servo;
 public class ClawY {
 
     public boolean buttonX=false , ClawOpen=false;
-    public int ClawYState=1;
-    ///1=pos 1 0= pos 0
+    public static double dropPos=1 , pickupPos=0;
+
+    public double ReturnDropPos(){return dropPos;}
+    public double ReturnPickupPos(){return pickupPos;}
     public void ClawYManager(Gamepad gamepad , Servo ClawY)
     {
-       if (gamepad.x && !buttonX && !gamepad.right_bumper)
-       {
+        if (gamepad.x && !buttonX && !gamepad.right_bumper)
+        {
             ClawOpen = !ClawOpen;
             if (ClawOpen)
             {
-                setServoPos(ClawY , 1);
+                ChangeClawState(ClawY);
             } else
             {
-                setServoPos(ClawY , 0);
+                ChangeClawState(ClawY);
             }
-                buttonX = true;
-       }
+            buttonX = true;
+        }
         if (!gamepad.x && !gamepad.right_bumper) {
             buttonX = false;
         }
@@ -30,15 +32,14 @@ public class ClawY {
     public void setServoPos(Servo servo , double pos)
     {
         servo.setPosition(pos);
-        ChangeClawState();
     }
 
-    public void ChangeClawState()
+    public void ChangeClawState(Servo ClawY)
     {
-        if(ClawYState==0)
-            ClawYState=1;
+        if(ClawY.getPosition()==dropPos)
+            ClawY.setPosition(pickupPos);
         else
-            ClawYState=0;
+            ClawY.setPosition(dropPos);
     }
 
 }

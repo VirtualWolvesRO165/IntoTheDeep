@@ -1,25 +1,32 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
-
+@Config
 public class BratServo {
 
     boolean button=false , open=false;
+    public static double BratDownPos = 0.51
+            , BratUpPose=0.20;
 
-    public int ClawYState=1;
-
-    public double BratDownPos = 0.45 , BratUpPose=0.20;
+    public double ReturnBratDownPos(){return BratDownPos;}
+    public double ReturnBratUpPos(){return BratUpPose;}
     public void BratManager(Gamepad gamepad , Servo BratServoLeft , Servo BratServoRight)
     {
+        if(gamepad.right_stick_y>0.1 && (BratServoLeft.getPosition()<=1 ||BratServoLeft.getPosition()>=0 ||BratServoRight.getPosition()<=1 ||BratServoRight.getPosition()>=0))
+        {
+            setServoPos(BratServoLeft , BratServoRight , BratServoLeft.getPosition()+0.01 , BratServoRight.getPosition()-0.01);
+        }
+        if(gamepad.right_stick_y<-0.1 && (BratServoLeft.getPosition()<=1 ||BratServoLeft.getPosition()>=0 ||BratServoRight.getPosition()<=1 ||BratServoRight.getPosition()>=0))
+            setServoPos(BratServoLeft , BratServoRight , BratServoLeft.getPosition()-0.01 , BratServoRight.getPosition()+0.01);
+
         if (gamepad.y && !button) {
             open = !open;
             if (open) {
-                setServoPos(BratServoLeft , BratDownPos);
-                setServoPos(BratServoRight , BratUpPose);
+                setServoPos(BratServoLeft , BratServoRight , BratUpPose , BratDownPos);
             } else {
-                setServoPos(BratServoLeft , BratUpPose);
-                setServoPos(BratServoRight , BratDownPos);
+                setServoPos(BratServoLeft , BratServoRight , BratDownPos , BratUpPose);
             }
             button = true;
         }
@@ -28,18 +35,9 @@ public class BratServo {
         }
     }
 
-    public void setServoPos(Servo servo , double pos)
-    {
-        servo.setPosition(pos);
-        ChangeClawState();
-    }
-
-    public void ChangeClawState()
-    {
-        if(ClawYState==0)
-            ClawYState=1;
-        else
-            ClawYState=0;
+    public void setServoPos(Servo servo1 , Servo servo2 , double pos , double pos2) {
+        servo1.setPosition(pos);
+        servo2.setPosition(pos2);
     }
 
 }
